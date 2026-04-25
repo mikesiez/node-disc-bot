@@ -1,1 +1,0 @@
-tts-server --model_path "C:\Users\micha\AppData\Local\tts\tts_models--multilingual--multi-dataset--xtts_v2\" --config_path "C:\Users\micha\AppData\Local\tts\tts_models--multilingual--multi-dataset--xtts_v2\config.json"

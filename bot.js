@@ -1,6 +1,7 @@
 const djs = require('discord.js');
 const djsV = require('@discordjs/voice');
 const fs = require("fs")
+
 const { Readable } = require('stream');
 
 const prefix = "!";
@@ -26,8 +27,14 @@ const msgCmds = require('./textMsgCmds');
 const slashCmds = require('./slashCmds');
 
 let commands = [];
-for ({name, description} of Object.values(slashCmds)){
-    commands.push( {name, description} );
+for ({name, description, options} of Object.values(slashCmds)){
+    const cmd = {name, description};
+
+    if (options) {
+        cmd.options = options;
+    }
+
+    commands.push(cmd);
     console.log(`added cmd ${name}`)
 }
 
@@ -37,7 +44,7 @@ async function syncCommands() {
     try {
         console.log(`Refreshing app cmds.`);
         const data = await rest.put(djs.Routes.applicationGuildCommands(clientId,guildId), { body: commands} )
-        console.log(`"suces" ${data.length}`);
+        console.log(`"cmd refresh success" ${data.length}`);
 
     } catch (err){
         console.error(err);
@@ -72,30 +79,22 @@ client.on(djs.Events.MessageCreate, async msg => {
 
     else if (djsV.getVoiceConnection(msg.guildId)){
         const text = msg.content;
-
-        const connection = djsV.getVoiceConnection(msg.guildId);
-        connection.subscribe(player);
-
-        const SPEAKER_WAV = "C:/Users/micha/speaker.wav"; // your wav file path
-        const LANGUAGE = "en";
-
-        const response = await fetch(
-        `http://localhost:5002/api/tts` +
-        `?text=${encodeURIComponent(text)}` +
-        `&speaker_wav=${encodeURIComponent(SPEAKER_WAV)}` +
-        `&language=${LANGUAGE}`
-        );
-
+        
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        const readable = Readable.from(buffer);
 
-        const resource = djsV.createAudioResource(readable, {
+        const stream = Readable.from(buffer);
+
+        const resource = djsV.createAudioResource(stream, {
             inputType: djsV.StreamType.Arbitrary,
         });
 
+        const connection = djsV.getVoiceConnection(msg.guildId);
+        connection.subscribe(player);
         player.play(resource);
 
+        await msg.reply("voiced message: "+text)
+        
     }
 
 })

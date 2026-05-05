@@ -3,7 +3,7 @@ const djsV = require("@discordjs/voice");
 const { spawn } = require('child_process');
 
 /*
-@type {djs.ChatInputCommandInteraction} >> so vs recognized var type
+@type {djs.ChatInputCommandInteraction} >> so vs recognizes var type
 */
 
 
@@ -23,7 +23,7 @@ module.exports = {
                 await interaction.editReply(`joined vc ${vc.name} at ${interaction.user.globalName}'s request`)
 
             } else {
-               await interaction.reply('u r not in vc ');
+               await interaction.reply('you are not in vc ');
             }
         }
     },
@@ -34,9 +34,9 @@ module.exports = {
             const con = djsV.getVoiceConnection(interaction.guildId)
             if (con) {
                 con.destroy();
-                await interaction.reply("i left according to my boss");
+                await interaction.reply("left vc");
             } else {
-                await interaction.reply("?")
+                await interaction.reply("not in vc")
             }
         }
     },
@@ -156,7 +156,7 @@ module.exports = {
             }
             await interaction.deferReply();
 
-            const mcProcess = spawn('bash', ['./script.sh']);
+            const mcProcess = spawn('bash', ['../start_server.sh']);
             global.mcServerP = mcProcess;
             
             mcProcess.stdout.on('data', (data) => {
@@ -179,6 +179,7 @@ module.exports = {
         name: "stop_zombie_mc",
         description: "stop mc server",
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+            
             if (global.mcServerP){
                 global.mcServerP.kill('SIGTERM');
                 global.mcServerP = null;
@@ -186,6 +187,7 @@ module.exports = {
             } else {
                 await interaction.reply("no server running")
             }
+
         }
     }
 }

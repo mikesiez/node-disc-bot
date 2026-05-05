@@ -1,5 +1,6 @@
 const djs = require('discord.js');
 const djsV = require("@discordjs/voice");
+const { spawn } = require('child_process');
 
 /*
 @type {djs.ChatInputCommandInteraction} >> so vs recognized var type
@@ -144,6 +145,47 @@ module.exports = {
 
             interaction.editReply(returnString);
 
+        }
+    },
+    start_zombie_mc : {
+        name: "start_zombie_mc",
+        description: "start mc server",
+        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+            if (global.mcServerP){
+                return interaction.reply('alrdy running')
+            }
+            await interaction.deferReply();
+
+            const mcProcess = spawn('bash', ['./script.sh']);
+            global.mcServerP = mcProcess;
+            
+            mcProcess.stdout.on('data', (data) => {
+                console.log(`stdout: ${data}`);
+            });
+
+            mcProcess.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+            });
+
+            mcProcess.on('close', (code) => {
+                console.log(`server exited with code ${code}`);
+            });
+
+            await interaction.editReply('server started')
+
+        }
+    },
+    stop_zombie_mc : {
+        name: "stop_zombie_mc",
+        description: "stop mc server",
+        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+            if (global.mcServerP){
+                global.mcServerP.kill('SIGTERM');
+                global.mcServerP = null;
+                await interaction.reply('server killed')
+            } else {
+                await interaction.reply("no server running")
+            }
         }
     }
 }

@@ -156,7 +156,7 @@ module.exports = {
             }
             await interaction.deferReply();
 
-            const mcProcess = spawn('bash', ['../start_server.sh']);
+            const mcProcess = spawn('bash', ['../start_server.sh']); // just the nohup bash process but ideally wanna directly run the java cmd for server runup
             global.mcServerP = mcProcess;
             
             mcProcess.stdout.on('data', (data) => {
@@ -181,7 +181,12 @@ module.exports = {
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
             
             if (global.mcServerP){
-                global.mcServerP.kill('SIGTERM');
+                const killer = spawn('pkill', ['-f', 'java.*minecraft']); // only 1 server running so this is fine
+
+                killer.on('close', (code) => {
+                    console.log(`pkill exited with code ${code}`);
+                });
+
                 global.mcServerP = null;
                 await interaction.reply('server killed')
             } else {

@@ -176,7 +176,7 @@ module.exports = {
                 
                 if (data.includes("Done (")) {
                     console.log("started")
-                    await interaction.editReply("server started")
+                    await interaction.editReply(`<@${interaction.member.id}> server started`)
 
                 } else if (data.includes("UUID of player")) {
                     const output = line.split(" ");

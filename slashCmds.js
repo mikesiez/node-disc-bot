@@ -1,6 +1,8 @@
 const djs = require('discord.js');
 const djsV = require("@discordjs/voice");
 const { spawn } = require('child_process');
+const tokens = require("./token");
+const mcLogsCid = tokens.mcLogChannel;
 
 /*
 @type {djs.ChatInputCommandInteraction} >> so vs recognizes var type
@@ -68,7 +70,7 @@ module.exports = {
             const userInput = interaction.options.getString("songs");
             interaction.reply(`fetching songs similar to: ${userInput} ... `)
 
-            const {chosicApiKey} = require("./token");
+            const chosicApiKey = tokens.chosicApiKey;
 
             let queries = userInput.replace(" ","").replace(", ",",").split(",")
 
@@ -158,10 +160,6 @@ module.exports = {
 
             const mcProcess = spawn('bash', ['../start_server.sh']); // just the nohup bash process but ideally wanna directly run the java cmd for server runup
             global.mcServerP = mcProcess;
-            
-            mcProcess.stdout.on('data', (data) => {
-                console.log(`stdout: ${data}`);
-            });
 
             mcProcess.stderr.on('data', (data) => {
                 console.error(`stderr: ${data}`);
@@ -171,7 +169,52 @@ module.exports = {
                 console.log(`server exited with code ${code}`);
             });
 
-            await interaction.editReply('server started')
+            await interaction.editReply('server starting...');
+            
+            let plrsInServer = [];
+            mcProcess.stdout.on('data', async (data) => {
+                
+                if (data.includes("Done (")) {
+                    console.log("started")
+                    await interaction.reply("server started")
+
+                } else if (data.includes("UUID of player")) {
+                    const output = line.split(" ");
+                    const name = output[8];
+                    const UUID = output[output.length - 1];
+
+                    if (!plrsInServer.includes(name)) {
+                        plrsInServer.push(name);
+                    }
+
+                    const msg = `User joined server: ${name} | Players online: ${plrsInServer.length}`
+
+                    console.log(msg);
+
+                } else if (data.includes("left the game")) {
+                    const output = line.split(" ");
+                    const name = output[output.length - 4];
+
+                    const index = plrsInServer.indexOf(name);
+                    if (index !== -1) {
+                        plrsInServer.splice(index, 1);
+                    }
+
+                    const msg = `User left server: ${name} | Players online: ${plrsInServer.length}`
+
+                    console.log(msg);
+
+                } else if (data.includes("has made the advancement")) {
+                    const output = line.split(" ");
+                    const advancement = output.slice(9).join(" ");
+                    const playerWhoGot = output[4];
+
+                    const msg = `${playerWhoGot} got achievement ${advancement}`
+                    console.log(msg);
+                }
+
+                //console.log(`stdout: ${data}`);
+            });
 
         }
     },

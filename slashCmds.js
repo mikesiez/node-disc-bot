@@ -179,7 +179,7 @@ module.exports = {
                     await interaction.editReply(`<@${interaction.member.id}> server started`)
 
                 } else if (data.includes("UUID of player")) {
-                    const output = line.split(" ");
+                    const output = data.split(" ");
                     const name = output[8];
                     const UUID = output[output.length - 1];
 
@@ -192,7 +192,7 @@ module.exports = {
                     console.log(msg);
 
                 } else if (data.includes("left the game")) {
-                    const output = line.split(" ");
+                    const output = data.split(" ");
                     const name = output[output.length - 4];
 
                     const index = plrsInServer.indexOf(name);
@@ -205,7 +205,7 @@ module.exports = {
                     console.log(msg);
 
                 } else if (data.includes("has made the advancement")) {
-                    const output = line.split(" ");
+                    const output = data.split(" ");
                     const advancement = output.slice(9).join(" ");
                     const playerWhoGot = output[4];
 

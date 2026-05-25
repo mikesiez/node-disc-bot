@@ -249,13 +249,20 @@ module.exports = {
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
             await interaction.reply("begging strangers for money")
 
+            if (!(interaction.member.displayName in db)){
+                db[interaction.member.displayName] = {money:5, winnings: 0, losses: 0};
+            }
+
+            if (db[interaction.member.displayName].money > 10){
+                interaction.editReply("ur too rich go gamble");
+                return;
+            }
+
             if (Math.random() < 0.5){
                 const amount = (Math.random())*10;
                 await interaction.editReply(`u got $${amount}`)
 
-                if (!(interaction.member.displayName in db)){
-                    db[interaction.member.displayName] = {money:0, winnings: 0, losses: 0};
-                }
+                
                 db[interaction.member.displayName].money += amount;
             } else {
                 interaction.editReply("no one wanted to give u money")
@@ -272,6 +279,12 @@ module.exports = {
                 description: "amount to bet against dealer",
                 type: 4,
                 required: true
+            },
+            {
+                name: "ALL IN",
+                description: "go all in",
+                type: 5,
+                required: false
             }
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
@@ -281,10 +294,13 @@ module.exports = {
             const username = interaction.member.displayName;
             
             if (!(username in db)){
-                db[username] = {money: 0, winnings: 0, losses: 0};
+                db[username] = {money: 5, winnings: 0, losses: 0};
             }
             
-            const bet = interaction.options.getInteger("bet");
+            let bet = interaction.options.getInteger("bet");
+            if (interaction.options.getBoolean("ALL IN")){
+                bet = db[username].money;
+            }
 
             if (!(db[username].money >= bet)){
                 interaction.editReply("ur too broke.");
@@ -298,8 +314,11 @@ module.exports = {
             // 1. Dead simple math: cards are just numbers from 2 to 11
             const drawCard = () => Math.floor(Math.random() * 10) + 2;
 
+            const dealerCard1 = drawCard();
+            const dealerCard2 = drawCard();
+
             let playerTotal = drawCard() + drawCard();
-            let dealerTotal = drawCard() + drawCard();
+            let dealerTotal = dealerCard1 + dealerCard2;
 
             // 2. Simple Button Layout (Raw Discord format)
             const buttons = [{
@@ -311,8 +330,8 @@ module.exports = {
             }];
 
             // 3. Send the initial game state
-            const gameMessage = await interaction.editReply({
-                content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerTotal - drawCard()}\``,
+            const gameMessage = await interaction.reply({
+                content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerCard1}\` + 🎴`,
                 components: buttons
             });
 
@@ -340,7 +359,7 @@ module.exports = {
                     } else {
                         // Still alive, update the numbers
                         await interaction.editReply({
-                            content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerTotal - drawCard()}\``,
+                            content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerCard1}\` + 🎴`,
                             components: buttons
                         });
                     }
@@ -395,15 +414,87 @@ module.exports = {
     balance : {
         name: "balance",
         description: "show game balance",
+        options : [
+            {
+                name:"user",
+                description: "see user's balance",
+                type: 6,
+                required: false
+            }
+        ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
 
-            const username = interaction.member.displayName;
-
-            if (!(username in db)){
-                db[username] = {money:0, winnings: 0, losses: 0};
+            let username = interaction.member.displayName;
+            if (interaction.options.getMember("user")){
+                username = interaction.options.getMember("user").displayName;
             }
 
-            await interaction.reply(`Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}`);
+            if (!(username in db)){
+                if (!(username in db)){
+                    db[username] = {money:5, winnings: 0, losses: 0};
+                }
+            }
+
+            await interaction.reply(`Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${db[username].winnings/db[username].losses}`);
+
+        }
+    },
+    leaderboard: {
+        name: "leaderboard",
+        description: "global leaderboard",
+        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+            
+            const players = Object.keys(db).map(username => {
+                const user = db[username];
+                const winnings = user.winnings;
+                const losses = user.losses;
+                
+                // Calculate winrate safely (prevent division by zero)
+
+                return {
+                    username,
+                    money: user.money,
+                    winnings,
+                    losses,
+                    winrate: `${winnings/losses}`
+                };
+            });
+
+            // 2. Sort players by money (highest first)
+            players.sort((a, b) => b.money - a.money);
+
+            // 3. Slice to only show top 10 players (prevents character limit overflow)
+            const topPlayers = players.slice(0, 10);
+
+            if (topPlayers.length === 0) {
+                return interaction.reply({ content: "❌ No data found in the database yet!", ephemeral: true });
+            }
+
+            // 4. Build a perfectly aligned text table for the codeblock
+            // Adjust padding widths if usernames or numbers get massive
+            let leaderboardText = "Rank | Player           | Balance    | W / L   | Winrate\n";
+            leaderboardText += "---------------------------------------------------------\n";
+
+            topPlayers.forEach((player, index) => {
+                const rank = (index + 1).toString().padEnd(4, ' ');
+                const name = player.username.substring(0, 16).padEnd(16, ' '); // Max 16 chars for formatting
+                const balance = `🪙${player.money}`.padEnd(10, ' ');
+                const wl = `${player.winnings}/${player.losses}`.padEnd(7, ' ');
+                const rate = player.winrate;
+
+                leaderboardText += `${rank} | ${name} | ${balance} | ${wl} | ${rate}\n`;
+            });
+
+            // 5. Send the styled Embed response
+            await interaction.reply({
+                embeds: [{
+                    title: '🏆 CASINO LEADERBOARD 🏆',
+                    color: 0xF1C40F, // Golden yellow color
+                    description: `\`\`\`text\n${leaderboardText}\`\`\``,
+                    footer: { text: `Showing top ${topPlayers.length} active players` },
+                    timestamp: new Date().toISOString()
+                }]
+            });
 
         }
     },

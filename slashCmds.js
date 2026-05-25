@@ -479,7 +479,7 @@ module.exports = {
                 const name = player.username.substring(0, 16).padEnd(16, ' '); // Max 16 chars for formatting
                 const balance = `🪙${player.money}`.padEnd(10, ' ');
 
-                leaderboardText += `${rank} | ${name} | ${balance} | ${wl}\n`;
+                leaderboardText += `${rank} | ${name} | ${balance}\n`;
             });
 
             // 5. Send the styled Embed response

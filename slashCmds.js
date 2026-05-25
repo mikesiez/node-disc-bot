@@ -407,4 +407,11 @@ module.exports = {
 
         }
     },
+    kill: {
+        name: "kill",
+        description: "kill me",
+        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+            destroy.me!
+        }
+    },
 }

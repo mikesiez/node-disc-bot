@@ -24,7 +24,7 @@ client.on(djs.Events.ClientReady, (client) => {
     client.user.setActivity({
         type: djs.ActivityType.Custom,
         name: "custom",
-        state: "u & me > 100 miles"
+        state: "u & me > 100 miles 🕺"
     })
 });
 

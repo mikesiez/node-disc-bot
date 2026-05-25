@@ -62,15 +62,15 @@ module.exports = {
                 name: "cloudy",
                 description: "cloudy song format?",
                 type: 5,
-                required: true
+                required: false
             }
         ],
         do: async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
 
             const userInput = interaction.options.getString("songs");
-            interaction.reply(`fetching songs similar to: ${userInput} ... `)
+            await interaction.reply(`fetching songs similar to: ${userInput} ... `)
 
-            interaction.editReply('no key rn.')
+            await interaction.editReply('no key rn.')
 
             return;
 
@@ -135,7 +135,7 @@ module.exports = {
             let returnString = "";
             returnString += `Here are ${howMany} songs that match the songs: \`\`\` ${userInput} \`\`\` \n`
             
-            const cloudyFormat = interaction.options.getBoolean("cloudy");
+            const cloudyFormat = ("cloudy");
             if (cloudyFormat){
                 returnString += `\n [!] Copyable command format for cloudy: \n \`\`\``
                 for (song of recommendedSongs["tracks"]){

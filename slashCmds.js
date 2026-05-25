@@ -311,7 +311,7 @@ module.exports = {
             }];
 
             // 3. Send the initial game state
-            const gameMessage = await interaction.reply({
+            const gameMessage = await interaction.editReply({
                 content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerTotal - drawCard()}\``,
                 components: buttons
             });

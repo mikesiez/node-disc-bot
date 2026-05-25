@@ -257,6 +257,8 @@ module.exports = {
                     db[interaction.member.displayName] = {money:0, winnings: 0, losses: 0};
                 }
                 db[interaction.member.displayName].money += amount;
+            } else {
+                interaction.editReply("no one wanted to give u money")
             }
 
         }
@@ -293,160 +295,96 @@ module.exports = {
             
             //-----------------------------------
 
-            // 1. Setup Deck & Game State
-            const suits = ['♠️', '♥️', '♦️', '♣️'];
-            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-            let deck = [];
+            // 1. Dead simple math: cards are just numbers from 2 to 11
+            const drawCard = () => Math.floor(Math.random() * 10) + 2;
 
-            for (const suit of suits) {
-                for (const value of values) {
-                    deck.push({ value, suit });
-                }
-            }
+            let playerTotal = drawCard() + drawCard();
+            let dealerTotal = drawCard() + drawCard();
 
-            // Shuffle deck
-            deck = deck.sort(() => Math.random() - 0.5);
+            // 2. Simple Button Layout (Raw Discord format)
+            const buttons = [{
+                type: 1, // This means "Action Row" (a container for buttons)
+                components: [
+                    { type: 2, style: 1, label: 'Hit', custom_id: 'hit_btn' },
+                    { type: 2, style: 2, label: 'Stand', custom_id: 'stand_btn' }
+                ]
+            }];
 
-            const drawCard = () => deck.pop();
-            
-            // Calculate hand value
-            const calculateHand = (hand) => {
-                let value = 0;
-                let aces = 0;
-                for (const card of hand) {
-                    if (['J', 'Q', 'K'].includes(card.value)) value += 10;
-                    else if (card.value === 'A') { value += 11; aces++; }
-                    else value += parseInt(card.value);
-                }
-                while (value > 21 && aces > 0) {
-                    value -= 10;
-                    aces--;
-                }
-                return value;
-            };
-
-            // Format hand for Discord display
-            const formatHand = (hand) => hand.map(c => `\`${c.value}${c.suit}\``).join(' ');
-
-            // Initial Deal
-            let playerHand = [drawCard(), drawCard()];
-            let dealerHand = [drawCard(), drawCard()];
-
-            // 2. Create UI Buttons (Using raw Discord.js object format)
-            const getButtons = (disabled = false) => {
-                return [{
-                    type: 1, // ActionRow
-                    components: [
-                        { type: 2, style: 1, label: 'Hit', custom_id: 'bj_hit', disabled },
-                        { type: 2, style: 2, label: 'Stand', custom_id: 'bj_stand', disabled }
-                    ]
-                }];
-            };
-
-            // 3. Game State Display Function
-            const generateEmbed = (gameOver = false, message = '') => {
-                const pScore = calculateHand(playerHand);
-                const dScore = calculateHand(dealerHand);
-                
-                // Hide dealer's second card if game is still going
-                const dealerString = gameOver 
-                    ? `${formatHand(dealerHand)} *(Total: ${dScore})*`
-                    : `\`${dealerHand[0].value}${dealerHand[0].suit}\` \`??\``;
-
-                return {
-                    embeds: [{
-                        title: '🃏 Blackjack Table',
-                        color: gameOver ? 0x2f3136 : 0x00ff00,
-                        fields: [
-                            { name: 'Your Hand', value: `${formatHand(playerHand)} *(Total: ${pScore})*`, inline: true },
-                            { name: 'Dealer Hand', value: dealerString, inline: true },
-                            { name: 'Bet Amount', value: `🪙 ${bet} credits`, inline: false }
-                        ],
-                        description: message || 'What would you like to do?'
-                    }],
-                    components: getButtons(gameOver)
-                };
-            };
-
-            // 4. Start the game with an initial reply
-            const initialResponse = await interaction.reply(generateEmbed());
-
-            // Check for immediate natural Blackjack
-            if (calculateHand(playerHand) === 21) {
-                await interaction.editReply(generateEmbed(true, '🎉 **Blackjack! You win instantly!**'));
-                return;
-            }
-
-            // 5. Create a collector to listen for button interactions
-            const collector = initialResponse.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id, // Only the player can click
-                time: 60000 // 1 minute timeout
+            // 3. Send the initial game state
+            const gameMessage = await interaction.reply({
+                content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerTotal - drawCard()}\``,
+                components: buttons
             });
 
-            collector.on('collect', async (btnInteraction) => {
-                // Acknowledge the button click immediately to prevent lag/errors
-                await btnInteraction.deferUpdate();
+            // 4. This is the "Collector"—think of it as a simple event listener for the buttons
+            const listener = gameMessage.createMessageComponentCollector({
+                filter: i => i.user.id === interaction.user.id, // Only allow the person who played to click
+                time: 30000 // Turn off after 30 seconds of inactivity
+            });
 
-                if (btnInteraction.customId === 'bj_hit') {
-                    playerHand.push(drawCard());
-                    const playerScore = calculateHand(playerHand);
+            listener.on('collect', async (click) => {
+                // Acknowledge the click immediately so Discord doesn't say "Interaction Failed"
+                await click.deferUpdate();
 
-                    if (playerScore > 21) {
-                        // Player busted
-                        await interaction.editReply(generateEmbed(true, `💥 **Bust! You went over 21. You lose ${bet} credits.**`));
-                        collector.stop();
-                    } else if (playerScore === 21) {
-                        // Auto-stand on 21
-                        collector.stop('dealer_turn');
+                // --- IF THEY CLICK HIT ---
+                if (click.customId === 'hit_btn') {
+                    playerTotal += drawCard(); // Do the math
+
+                    if (playerTotal > 21) {
+                        // Game Over: Bust
+                        await interaction.editReply({
+                            content: `💥 **Bust!** You got \`${playerTotal}\`. You lost 🪙${bet}.`,
+                            components: [] // This removes the buttons from the message
+                        });
+                        listener.stop(); // Turn off the listener
                     } else {
-                        // Update board and keep playing
-                        await interaction.editReply(generateEmbed());
+                        // Still alive, update the numbers
+                        await interaction.editReply({
+                            content: `🃏 **Blackjack Table** (Bet: 🪙${bet})\n\n👤 Your Total: \`${playerTotal}\`\n🤖 Dealer shows: \`${dealerTotal - drawCard()}\``,
+                            components: buttons
+                        });
                     }
-                } 
-                
-                else if (btnInteraction.customId === 'bj_stand') {
-                    collector.stop('dealer_turn');
+                }
+
+                // --- IF THEY CLICK STAND ---
+                if (click.customId === 'stand_btn') {
+                    listener.stop(); // Stop listening and move to the dealer's turn below
                 }
             });
 
-            // 6. Handle Dealer's turn and Final Results
-            collector.on('end', async (collected, reason) => {
-                if (reason === 'time') {
-                    await interaction.editReply(generateEmbed(true, '⏰ **Game timed out.**'));
-                    return;
+            // 5. This triggers when the game finishes or times out
+            listener.on('end', async (collected, reason) => {
+                // If the player busted, we already handled it, so stop here
+                if (playerTotal > 21) return;
+
+                // Dealer hits until they have at least 17
+                while (dealerTotal < 17) {
+                    dealerTotal += drawCard();
                 }
 
-                if (reason === 'dealer_turn') {
-                    let playerScore = calculateHand(playerHand);
-                    let dealerScore = calculateHand(dealerHand);
-
-                    // Dealer hits until hitting 17 or higher
-                    while (dealerScore < 17) {
-                        dealerHand.push(drawCard());
-                        dealerScore = calculateHand(dealerHand);
-                    }
-
-                    // Determine Winner
-                    let finalMessage = '';
-                    if (dealerScore > 21) {
-                        finalMessage = `🏆 **Dealer busted with ${dealerScore}! You win ${bet} credits!**`;
-                        db[username].money += 2*bet;
-                        db[username].winnings += bet;
-                    } else if (playerScore > dealerScore) {
-                        finalMessage = `🏆 **You beat the dealer! You win ${bet} credits!**`;
-                        db[username].money += 2*bet;
-                        db[username].winnings += bet;
-                    } else if (playerScore < dealerScore) {
-                        finalMessage = `❌ **Dealer wins with ${dealerScore}. You lose ${bet} credits.**`;
-                        db[username].losses += bet;
-                    } else {
-                        finalMessage = `👔 **It's a tie! Your ${bet} credits were returned.**`;
-                        db[username].money += bet;
-                    }
-
-                    // Update the reply one final time with buttons disabled and results shown
-                    await interaction.editReply(generateEmbed(true, finalMessage));
+                // Simple win/loss logic
+                let finalStatus = '';
+                if (dealerTotal > 21) {
+                    finalStatus = `🏆 Dealer busted with \`${dealerTotal}\`! You win 🪙${bet}!`;
+                    db[username].money += 2 * bet;
+                    db[username].winnings += bet;
+                } else if (playerTotal > dealerTotal) {
+                    finalStatus = `🏆 You beat the dealer (\`${playerTotal}\` vs \`${dealerTotal}\`)! You win 🪙${bet}!`;
+                    db[username].money += 2 * bet;
+                    db[username].winnings += bet;
+                } else if (playerTotal < dealerTotal) {
+                    finalStatus = `❌ Dealer wins with \`${dealerTotal}\`. You lose 🪙${bet}.`;
+                    db[username].losses += bet;
+                } else {
+                    finalStatus = `👔 It's a tie (\`${playerTotal}\` each). Bet returned.`;
+                    db[username].money += bet;
                 }
+
+                // One final edit to display results and wipe the buttons
+                await interaction.editReply({
+                    content: `🃏 **Final Score**\n\n👤 You: \`${playerTotal}\`\n🤖 Dealer: \`${dealerTotal}\`\n\n${finalStatus}`,
+                    components: []
+                });
             });
 
 
@@ -465,7 +403,7 @@ module.exports = {
                 db[username] = {money:0, winnings: 0, losses: 0};
             }
 
-            await interaction.reply(`Balance: ${db[username].money}, Winnings: ${db[username].winnings}, Losses: ${db[username].losses}`);
+            await interaction.reply(`Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}`);
 
         }
     },

@@ -70,6 +70,10 @@ module.exports = {
             const userInput = interaction.options.getString("songs");
             interaction.reply(`fetching songs similar to: ${userInput} ... `)
 
+            interaction.editReply('no key rn.')
+
+            return;
+
             const chosicApiKey = tokens.chosicApiKey;
 
             let queries = userInput.replace(" ","").replace(", ",",").split(",")
@@ -171,7 +175,7 @@ module.exports = {
 
             await interaction.editReply('server starting...');
             
-            let plrsInServer = [];
+            /*let plrsInServer = [];
             mcProcess.stdout.on('data', async (data) => {
                 
                 if (data.includes("Done (")) {
@@ -214,7 +218,7 @@ module.exports = {
                 }
 
                 //console.log(`stdout: ${data}`);
-            });
+            });*/
 
         }
     },

@@ -471,8 +471,8 @@ module.exports = {
 
             // 4. Build a perfectly aligned text table for the codeblock
             // Adjust padding widths if usernames or numbers get massive
-            let leaderboardText = "Rank | Player           | Balance    | W / L \n";
-            leaderboardText += "-------------------------------------------\n";
+            let leaderboardText = "Rank | Player           | Balance  \n";
+            leaderboardText += "--------------------------------------\n";
 
             topPlayers.forEach((player, index) => {
                 const rank = (index + 1).toString().padEnd(4, ' ');

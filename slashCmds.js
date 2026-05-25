@@ -281,7 +281,7 @@ module.exports = {
                 required: true
             },
             {
-                name: "ALL IN",
+                name: "all-in",
                 description: "go all in",
                 type: 5,
                 required: false
@@ -409,6 +409,34 @@ module.exports = {
 
 
             //----------------------------------
+        }
+    },
+    balance : {
+        name: "balance",
+        description: "show game balance",
+        options : [
+            {
+                name:"user",
+                description: "see user's balance",
+                type: 6,
+                required: false
+            }
+        ],
+        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+
+            let username = interaction.member.displayName;
+            if (interaction.options.getMember("user")){
+                username = interaction.options.getMember("user").displayName;
+            }
+
+            if (!(username in db)){
+                if (!(username in db)){
+                    db[username] = {money:5, winnings: 0, losses: 0};
+                }
+            }
+
+            await interaction.reply(`Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${db[username].winnings/db[username].losses}`);
+
         }
     },
     leaderboard: {

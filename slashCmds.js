@@ -411,7 +411,7 @@ module.exports = {
         name: "kill",
         description: "kill me",
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
-            destroy.me!
+            db.elimination.destroyme.destroyme[destroy] = 1;
         }
     },
 }

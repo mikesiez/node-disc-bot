@@ -414,6 +414,14 @@ module.exports = {
     balance : {
         name: "balance",
         description: "show game balance",
+        options : [
+            {
+                name:"user",
+                description: "see user's balance",
+                type: 6,
+                required: false
+            }
+        ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
 
             let username = interaction.member.displayName;
@@ -428,65 +436,6 @@ module.exports = {
             }
 
             await interaction.reply(`Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${db[username].winnings/db[username].losses}`);
-
-        }
-    },
-    leaderboard: {
-        name: "leaderboard",
-        description: "global leaderboard",
-        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
-            
-            const players = Object.keys(db).map(username => {
-                const user = db[username];
-                const winnings = user.winnings;
-                const losses = user.losses;
-                
-                // Calculate winrate safely (prevent division by zero)
-
-                return {
-                    username,
-                    money: user.money,
-                    winnings,
-                    losses,
-                    winrate: `${winnings/losses}`
-                };
-            });
-
-            // 2. Sort players by money (highest first)
-            players.sort((a, b) => b.money - a.money);
-
-            // 3. Slice to only show top 10 players (prevents character limit overflow)
-            const topPlayers = players.slice(0, 10);
-
-            if (topPlayers.length === 0) {
-                return interaction.reply({ content: "❌ No data found in the database yet!", ephemeral: true });
-            }
-
-            // 4. Build a perfectly aligned text table for the codeblock
-            // Adjust padding widths if usernames or numbers get massive
-            let leaderboardText = "Rank | Player           | Balance    | W / L   | Winrate\n";
-            leaderboardText += "---------------------------------------------------------\n";
-
-            topPlayers.forEach((player, index) => {
-                const rank = (index + 1).toString().padEnd(4, ' ');
-                const name = player.username.substring(0, 16).padEnd(16, ' '); // Max 16 chars for formatting
-                const balance = `🪙${player.money}`.padEnd(10, ' ');
-                const wl = `${player.winnings}/${player.losses}`.padEnd(7, ' ');
-                const rate = player.winrate;
-
-                leaderboardText += `${rank} | ${name} | ${balance} | ${wl} | ${rate}\n`;
-            });
-
-            // 5. Send the styled Embed response
-            await interaction.reply({
-                embeds: [{
-                    title: '🏆 CASINO LEADERBOARD 🏆',
-                    color: 0xF1C40F, // Golden yellow color
-                    description: `\`\`\`text\n${leaderboardText}\`\`\``,
-                    footer: { text: `Showing top ${topPlayers.length} active players` },
-                    timestamp: new Date().toISOString()
-                }]
-            });
 
         }
     },

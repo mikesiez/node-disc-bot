@@ -414,14 +414,6 @@ module.exports = {
     balance : {
         name: "balance",
         description: "show game balance",
-        options : [
-            {
-                name:"user",
-                description: "see user's balance",
-                type: 6,
-                required: false
-            }
-        ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
 
             let username = interaction.member.displayName;

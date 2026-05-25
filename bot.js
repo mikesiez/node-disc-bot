@@ -20,6 +20,12 @@ const client = new djs.Client({ intents: [
 
 client.on(djs.Events.ClientReady, (client) => {
     console.log(`Logged in as ${client.user.tag}`);
+
+    client.user.setActivity({
+        type: djs.ActivityType.Custom,
+        name: "custom",
+        state: "u & me > 100 miles"
+    })
 });
 
 

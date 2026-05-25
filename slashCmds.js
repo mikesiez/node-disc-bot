@@ -435,7 +435,7 @@ module.exports = {
                 }
             }
 
-            await interaction.reply(`Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${db[username].winnings/db[username].losses}`);
+            await interaction.reply(`${username}'s Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${db[username].winnings/db[username].losses}`);
 
         }
     },
@@ -455,8 +455,7 @@ module.exports = {
                     username,
                     money: user.money,
                     winnings,
-                    losses,
-                    winrate: `${winnings/losses}`
+                    losses
                 };
             });
 
@@ -472,17 +471,15 @@ module.exports = {
 
             // 4. Build a perfectly aligned text table for the codeblock
             // Adjust padding widths if usernames or numbers get massive
-            let leaderboardText = "Rank | Player           | Balance    | W / L   | Winrate\n";
-            leaderboardText += "---------------------------------------------------------\n";
+            let leaderboardText = "Rank | Player           | Balance    | W / L \n";
+            leaderboardText += "-------------------------------------------\n";
 
             topPlayers.forEach((player, index) => {
                 const rank = (index + 1).toString().padEnd(4, ' ');
                 const name = player.username.substring(0, 16).padEnd(16, ' '); // Max 16 chars for formatting
                 const balance = `🪙${player.money}`.padEnd(10, ' ');
-                const wl = `${player.winnings}/${player.losses}`.padEnd(7, ' ');
-                const rate = player.winrate;
 
-                leaderboardText += `${rank} | ${name} | ${balance} | ${wl} | ${rate}\n`;
+                leaderboardText += `${rank} | ${name} | ${balance} | ${wl}\n`;
             });
 
             // 5. Send the styled Embed response

@@ -279,7 +279,7 @@ module.exports = {
                 description: "amount to bet against dealer",
                 type: 4,
                 required: false,
-                min_value = 1
+                min_value : 1
             },
             {
                 name: "all-in",

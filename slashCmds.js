@@ -298,7 +298,7 @@ module.exports = {
                 db[username] = {money: 5, winnings: 0, losses: 0};
             }
             
-            if (!interaction.options.getBoolean("all-in") || !interaction.options.getInteger("bet") || interaction.options.getInteger("bet") <= 0){
+            if ((!interaction.options.getBoolean("all-in") && !interaction.options.getInteger("bet")) || interaction.options.getInteger("bet") <= 0){
                 return interaction.editReply("mfw when u do stupid stuff: 🥴")
             }
 

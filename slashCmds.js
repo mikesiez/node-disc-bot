@@ -259,7 +259,7 @@ module.exports = {
             }
 
             if (Math.random() < 0.5){
-                const amount = (Math.random())*10;
+                const amount = parseInt((Math.random())*10);
                 await interaction.editReply(`u got $${amount}`)
 
                 
@@ -278,7 +278,8 @@ module.exports = {
                 name: "bet",
                 description: "amount to bet against dealer",
                 type: 4,
-                required: true
+                required: false,
+                min_value = 1
             },
             {
                 name: "all-in",
@@ -297,13 +298,17 @@ module.exports = {
                 db[username] = {money: 5, winnings: 0, losses: 0};
             }
             
+            if (!interaction.options.getBoolean("all-in") || !interaction.options.getInteger("bet") || interaction.options.getInteger("bet") <= 0){
+                return interaction.editReply("mfw when u do stupid stuff: 🥴")
+            }
+
             let bet = interaction.options.getInteger("bet");
-            if (interaction.options.getBoolean("ALL IN")){
+            if (interaction.options.getBoolean("all-in")){
                 bet = db[username].money;
             }
 
             if (!(db[username].money >= bet)){
-                interaction.editReply("ur too broke.");
+                await interaction.editReply("ur too broke.");
                 return;
             }
             db[username].money -= bet;
@@ -477,7 +482,7 @@ module.exports = {
             topPlayers.forEach((player, index) => {
                 const rank = (index + 1).toString().padEnd(4, ' ');
                 const name = player.username.substring(0, 16).padEnd(16, ' '); // Max 16 chars for formatting
-                const balance = `🪙${player.money}`.padEnd(10, ' ');
+                const balance = `🪙${player.money.toFixed(2)}`.padEnd(10, ' ');
 
                 leaderboardText += `${rank} | ${name} | ${balance}\n`;
             });

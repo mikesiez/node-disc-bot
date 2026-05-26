@@ -440,7 +440,7 @@ module.exports = {
                 }
             }
 
-            await interaction.reply(`${username}'s Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${db[username].winnings/db[username].losses}`);
+            await interaction.reply(`${username}'s Balance: $${db[username].money}, Winnings: $${db[username].winnings}, Losses: $${db[username].losses}, Winrate: ${(db[username].winnings/db[username].losses).toFixed(2)}`);
 
         }
     },

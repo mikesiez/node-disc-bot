@@ -538,7 +538,7 @@ module.exports = {
             });
 
             const data = await response.json();
-            await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${data.response}`);
+            await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${data.response}\n\n> *running on michael's server pls go easy. model:${model}*`);
 
         }
     }

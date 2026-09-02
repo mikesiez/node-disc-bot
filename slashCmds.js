@@ -507,4 +507,39 @@ module.exports = {
             db.elimination.destroyme.destroyme[destroy] = 1;
         }
     },
+    chat: {
+        name: "chat",
+        description: "chat with bad ai",
+        options: [
+            {
+                name: "message",
+                description: "message to send",
+                type: 3,
+                required: true
+            }
+        ],
+        do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
+            const userInput = interaction.options.getString("songs");
+
+            const model = "qwen2.5-coder"
+            const endpoint = "http://localhost:11434/api/generate" // can use /chat if want to make context or more system related hints to the ai
+            await interaction.reply(`sending ${userInput} to ${model} `)
+
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: model,
+                    prompt: userInput,
+                    stream: false
+                })
+            });
+
+            const data = await response.json();
+            await interaction.editReply(data.response);
+
+        }
+    }
 }

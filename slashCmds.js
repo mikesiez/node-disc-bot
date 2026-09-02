@@ -519,7 +519,7 @@ module.exports = {
             }
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
-            const userInput = interaction.options.getString("songs");
+            const userInput = interaction.options.getString("message");
 
             const model = "qwen2.5-coder"
             const endpoint = "http://localhost:11434/api/generate" // can use /chat if want to make context or more system related hints to the ai

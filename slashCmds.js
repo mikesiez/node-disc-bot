@@ -523,7 +523,7 @@ module.exports = {
 
             const model = "qwen2.5-coder"
             const endpoint = "http://localhost:11434/api/generate" // can use /chat if want to make context or more system related hints to the ai
-            await interaction.deferReply(`sending '${userInput}' to model:'${model}' `)
+            await interaction.deferReply()
 
             try {
                 const response = await fetch(endpoint, {

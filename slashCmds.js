@@ -523,23 +523,36 @@ module.exports = {
 
             const model = "qwen2.5-coder"
             const endpoint = "http://localhost:11434/api/generate" // can use /chat if want to make context or more system related hints to the ai
-            await interaction.reply(`sending '${userInput}' to model:'${model}' `)
+            await interaction.deferReply(`sending '${userInput}' to model:'${model}' `)
 
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: model,
-                    prompt: userInput,
-                    stream: false
-                })
-            });
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        prompt: userInput,
+                        stream: false
+                    })
+                });
 
-            const data = await response.json();
-            await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${data.response}\n\n> *running on michael's server pls go easy. model:${model}*`);
-
+                const data = await response.json();
+                const answer = data.response
+                const warn = false
+                if (answer.length > 2000){ // max disc char limit
+                    answer = `${answer.slice(0,2000-3)}...`
+                    warn = true
+                }
+                await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${answer}\n\n> *running on michael's server pls go easy. model:${model}*`);
+                if (warn){
+                    await interaction.channel.send("*The AI produced a reply that was over discord's max character limit.*")
+                }
+            } catch (e) {
+                await interaction.editReply(`error occured. dont do bad things | e:${e}`)
+            }
+            
         }
     }
 }

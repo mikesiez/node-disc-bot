@@ -539,8 +539,8 @@ module.exports = {
                 });
 
                 const data = await response.json();
-                const answer = data.response
-                const warn = false
+                let answer = data.response
+                let warn = false
                 if (answer.length > 2000){ // max disc char limit
                     answer = `${answer.slice(0,2000-3)}...`
                     warn = true

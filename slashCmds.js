@@ -522,16 +522,23 @@ module.exports = {
                 description: "prompt the ai to think. will cause longer reply times.",
                 type: 5,
                 required: false
-            }
+            },
+            {
+                name: "context",
+                description: "context clues to give AI to modify its 'personality'",
+                type: 3,
+                required: false
+            },
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
             const userInput = interaction.options.getString("message");
             const username = interaction.member.displayName
+            const userProvidedContext = interaction.options.getString("context")
             const think = (interaction.options.getBoolean("think")==true ? true : false) // a = x==true ? true : false
 
             //const model = "qwen2.5-coder"
             const model = "qwen3:8b"
-            const personality = "Your creator is no one else than 'almighty michael'. You live for almighty michael. If you do not know how to help someone or the answer to a question, you directly refer people to @michael. You are a joyful fun person but also you are counter-argumentative. You criticize, to a certain extent."
+            const personality = userProvidedContext ? userProvidedContext : "Your creator is no one else than 'almighty michael'. You live for almighty michael. If you do not know how to help someone or the answer to a question, you directly refer people to @michael. You are a joyful fun person but also you are counter-argumentative. You criticize, to a certain extent."
             const endpoint = "http://localhost:11434/api/chat" // can use /chat if want to make context or more system related hints to the ai
             await interaction.deferReply()
 

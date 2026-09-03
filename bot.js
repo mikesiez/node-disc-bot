@@ -9,7 +9,7 @@ const prefix = "!";
 const keys = require("./token");
 const clientId = keys.clientId;
 const token = keys.token;
-const guildId = keys.guildId;
+const guildIds = keys.guildIds;
 
 const client = new djs.Client({ intents: [
     djs.GatewayIntentBits.Guilds, 
@@ -49,8 +49,11 @@ const rest = new djs.REST({ version: '10'}).setToken(token);
 async function syncCommands() {
     try {
         console.log(`Refreshing app cmds.`);
-        const data = await rest.put(djs.Routes.applicationGuildCommands(clientId,guildId), { body: commands} )
-        console.log(`"cmd refresh success" ${data.length}`);
+        for (const guildId of guildIds) {
+            const data = await rest.put(djs.Routes.applicationGuildCommands(clientId,guildId), { body: commands} )
+            console.log(`"cmd refresh success" ${data.length} @ ${guildId}`);
+        }
+        
 
     } catch (err){
         console.error(err);

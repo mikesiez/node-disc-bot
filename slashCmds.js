@@ -516,11 +516,18 @@ module.exports = {
                 description: "message to send",
                 type: 3,
                 required: true
+            },
+            {
+                name: "think",
+                description: "prompt the ai to think. will cause longer reply times.",
+                type: 5,
+                required: false
             }
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
             const userInput = interaction.options.getString("message");
             const username = interaction.member.displayName
+            const think = (interaction.options.getBoolean("think")==true ? true : false) // a = x==true ? true : false
 
             //const model = "qwen2.5-coder"
             const model = "qwen3:8b"
@@ -536,7 +543,7 @@ module.exports = {
                     },
                     body: JSON.stringify({
                         model: model,
-                        think: false,
+                        think: think,
                         "messages" : [
                             {
                                 "role" : "system",

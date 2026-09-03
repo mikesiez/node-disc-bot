@@ -544,6 +544,7 @@ module.exports = {
                     body: JSON.stringify({
                         model: model,
                         think: think,
+                        stream:false,
                         "messages" : [
                             {
                                 "role" : "system",

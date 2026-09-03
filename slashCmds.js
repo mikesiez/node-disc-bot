@@ -520,9 +520,12 @@ module.exports = {
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
             const userInput = interaction.options.getString("message");
+            const username = interaction.member.displayName
 
-            const model = "qwen2.5-coder"
-            const endpoint = "http://localhost:11434/api/generate" // can use /chat if want to make context or more system related hints to the ai
+            //const model = "qwen2.5-coder"
+            const model = "qwen3:8b"
+            const personality = "Your creator is no one else than 'almighty michael'. You live for almighty michael. If you do not know how to help someone or the answer to a question, you directly refer people to @michael. You are a joyful fun person but also you are counter-argumentative. You criticize, to a certain extent."
+            const endpoint = "http://localhost:11434/api/chat" // can use /chat if want to make context or more system related hints to the ai
             await interaction.deferReply()
 
             try {
@@ -533,19 +536,28 @@ module.exports = {
                     },
                     body: JSON.stringify({
                         model: model,
-                        prompt: userInput,
-                        stream: false
+                        "messages" : [
+                            {
+                                "role" : "system",
+                                "content" : personality
+                            },
+                            {
+                                "role" : "user",
+                                "content" : `${username} prompted you with: ${userInput}`
+                            }
+                        ]
                     })
                 });
 
                 const data = await response.json();
-                let answer = data.response
+                const thoughtTime = data.total_duration
+                let answer = data.message.content
                 let warn = false
                 if (answer.length > 2000){ // max disc char limit
                     answer = `${answer.slice(0,2000-3)}...`
                     warn = true
                 }
-                await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${answer}\n\n> *running on michael's server pls go easy. model:${model}*`);
+                await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${answer}\n\n> *running on michael's server pls go easy. model:${model} | thought for ${thoughtTime/1000000000}s*`);
                 if (warn){
                     await interaction.channel.send("*The AI produced a reply that was over discord's max character limit.*")
                 }

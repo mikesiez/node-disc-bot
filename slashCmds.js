@@ -566,7 +566,7 @@ module.exports = {
                     answer = `${answer.slice(0,2000-3)}...`
                     warn = true
                 }
-                await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${answer}\n\n> *running on michael's server pls go easy. model:${model} | thought for ${thoughtTime/1000000000}s*`);
+                await interaction.editReply(`**Prompt:** ${userInput}\n\n**AI Answer**: ${answer}\n\n> *running on michael's server pls go easy. model:${model} | took ${(thoughtTime/1000000000).toFixed(3)}s*`);
                 if (warn){
                     await interaction.channel.send("*The AI produced a reply that was over discord's max character limit.*")
                 }

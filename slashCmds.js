@@ -604,7 +604,11 @@ module.exports = {
             const cookie = tokens.cookie
             const referer = tokens.referer
 
-            const res = await fetch(`${domain}/${name}`, {
+            const link = `${domain}/${name}`
+            console.log(link)
+            return
+
+            const res = await fetch(link, {
                 method: "GET",
                 headers: {
                     "Cookie": cookie,

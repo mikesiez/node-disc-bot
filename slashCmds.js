@@ -605,8 +605,6 @@ module.exports = {
             const referer = tokens.referer
 
             const link = `${domain}/${name}`
-            console.log(link)
-            return
 
             const res = await fetch(link, {
                 method: "GET",

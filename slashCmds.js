@@ -640,7 +640,7 @@ module.exports = {
 
                 await interaction.editReply(msg)
             } catch (e) {
-                await interaction.editReply(`something went wrong: ${e}`)
+                await interaction.editReply(`something went wrong: ${e}. \n> Hint: If type error then doesnt exist or you mispelled`)
             }
             
         }

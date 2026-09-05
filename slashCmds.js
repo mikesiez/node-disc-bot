@@ -596,7 +596,7 @@ module.exports = {
             },
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
-            const name = interaction.options.getString("name");
+            const name = interaction.options.getString("game name");
 
             const domain = tokens.domain
             const cookie = tokens.cookie

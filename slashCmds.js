@@ -596,7 +596,7 @@ module.exports = {
             },
         ],
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
-            const name = interaction.options.getString("game name");
+            const name = interaction.options.getString("game-name");
 
             await interaction.reply(`fetching links for ${name}`)
 

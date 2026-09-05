@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+const cheerio = require("cheerio")
 const djs = require('discord.js');
 const djsV = require("@discordjs/voice");
 const { spawn } = require('child_process');

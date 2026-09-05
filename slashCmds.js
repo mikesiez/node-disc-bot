@@ -589,7 +589,7 @@ module.exports = {
         description: "sail the seas",
         options: [
             {
-                name: "name",
+                name: "game name",
                 description: "name as is EXACTLY",
                 type: 3,
                 required: true

@@ -604,39 +604,45 @@ module.exports = {
             const cookie = tokens.cookie
             const referer = tokens.referer
 
-            const link = `${domain}/${name}`
+            const link = encodeURI(`${domain}/${name}`)
+            console.log(`getting ${link}`)
 
-            const res = await fetch(link, {
-                method: "GET",
-                headers: {
-                    "Cookie": cookie,
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "Referer": referer,
-                }
-            });
-            const html = await res.text();
-
-            console.log(html)
-
-            const $ = cheerio.load(html);
-            let links;
-            $("div").each((_, el) => {
-                if ($(el).text().trim() === "Gofile") {
-                    const data = $(el).attr("data-links");
-                    if (data) {
-                        links = JSON.parse(data);
+            try {
+                const res = await fetch(link, {
+                    method: "GET",
+                    headers: {
+                        "Cookie": cookie,
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                        "Accept-Language": "en-US,en;q=0.9",
+                        "Referer": referer,
                     }
+                });
+                const html = await res.text();
+
+                console.log(html)
+
+                const $ = cheerio.load(html);
+                let links;
+                $("div").each((_, el) => {
+                    if ($(el).text().trim() === "Gofile") {
+                        const data = $(el).attr("data-links");
+                        if (data) {
+                            links = JSON.parse(data);
+                        }
+                    }
+                });
+
+                let msg = ""
+                for (const link of links) {
+                    msg += `[${link.file_name}](${link.direct_link})` + "\n"
                 }
-            });
 
-            let msg = ""
-            for (const link of links) {
-                msg += `[${link.file_name}](${link.direct_link})` + "\n"
+                await interaction.editReply(msg)
+            } catch (e) {
+                await interaction.editReply(`something went wrong: ${e}`)
             }
-
-            await interaction.editReply(msg)
+            
         }
     }
 }

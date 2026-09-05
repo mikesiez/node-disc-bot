@@ -598,6 +598,8 @@ module.exports = {
         do : async function(/**@type {djs.ChatInputCommandInteraction} */interaction){
             const name = interaction.options.getString("game name");
 
+            await interaction.reply(`fetching links for ${name}`)
+
             const domain = tokens.domain
             const cookie = tokens.cookie
             const referrer = tokens.referrer
@@ -617,13 +619,20 @@ module.exports = {
             const $ = cheerio.load(html);
             let links;
             $("div").each((_, el) => {
-            if ($(el).text().trim() === "Gofile") {
-                const data = $(el).attr("data-links");
-                if (data) {
-                links = JSON.parse(data);
+                if ($(el).text().trim() === "Gofile") {
+                    const data = $(el).attr("data-links");
+                    if (data) {
+                        links = JSON.parse(data);
+                    }
                 }
-            }
             });
+
+            let msg = ""
+            for (const link of links) {
+                msg += `[${link.file_name}](${link.direct_link})` + "\n"
+            }
+
+            await interaction.editReply(msg)
         }
     }
 }

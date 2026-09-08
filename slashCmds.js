@@ -584,7 +584,7 @@ module.exports = {
             
         }
     },
-    "game": {
+    game: {
         name: "game",
         description: "sail the seas",
         options: [

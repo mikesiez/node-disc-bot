@@ -1,4 +1,5 @@
 const cheerio = require("cheerio")
+const fs = require('fs/promises')
 const djs = require('discord.js');
 const djsV = require("@discordjs/voice");
 const { spawn } = require('child_process');
@@ -619,6 +620,8 @@ module.exports = {
                     }
                 });
                 const html = await res.text();
+                await fs.writeFile('page.html',html,"utf-8")
+                const file = new djs.AttachmentBuilder('page.html')
 
                 console.log(html)
 
@@ -638,7 +641,7 @@ module.exports = {
                     msg += `[${link.file_name}](${link.direct_link})` + "\n"
                 }
 
-                await interaction.editReply(msg)
+                await interaction.editReply({content:msg, files: [file]})
             } catch (e) {
                 await interaction.editReply(`something went wrong: ${e}. \n> Hint: If type error then doesnt exist or you mispelled`)
             }

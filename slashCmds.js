@@ -641,7 +641,7 @@ module.exports = {
                     msg += `[${link.file_name}](${link.direct_link})` + "\n"
                 }
 
-                await interaction.editReply({content:msg, files: [file]})
+                await interaction.editReply({content:msg, files: [file], flags:[djs.MessageFlags.SuppressEmbeds]})
             } catch (e) {
                 await interaction.editReply(`something went wrong: ${e}. \n> Hint: If type error then doesnt exist or you mispelled`)
             }

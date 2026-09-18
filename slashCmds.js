@@ -623,7 +623,7 @@ module.exports = {
                 await fs.writeFile('page.html',html,"utf-8")
                 const file = new djs.AttachmentBuilder('page.html')
 
-                console.log(html)
+                // console.log(html)
 
                 const $ = cheerio.load(html);
                 let links;

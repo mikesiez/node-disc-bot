@@ -609,17 +609,21 @@ module.exports = {
             console.log(`getting ${link}`)
 
             try {
-                const res = await fetch(link, {
-                    method: "GET",
+                const res = await fetch(tokens.fetchDom, {
+                    method: "POST",
                     headers: {
                         "Cookie": cookie,
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
                         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                         "Accept-Language": "en-US,en;q=0.9",
-                        "Referer": referer,
+                        "Referer": tokens.fetchRef,
+                    },
+                    body: {
+                        "url":link,
                     }
                 });
-                const html = await res.text();
+                const resp = await res.json();
+                const html = resp.html;
                 await fs.writeFile('page.html',html,"utf-8")
                 const file = new djs.AttachmentBuilder('page.html')
 

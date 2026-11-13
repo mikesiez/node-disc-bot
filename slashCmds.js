@@ -618,9 +618,9 @@ module.exports = {
                         "Accept-Language": "en-US,en;q=0.9",
                         "Referer": tokens.fetchRef,
                     },
-                    body: {
-                        "url":link,
-                    }
+                    body: JSON.stringify({
+                        url:link
+                    })
                 });
                 const resp = await res.json();
                 const html = resp.html;
